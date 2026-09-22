@@ -62,3 +62,23 @@ export interface AIResponseState {
   latencyMs?: number;
   timestamp: string;
 }
+
+export interface YaruTheme {
+  id: string;
+  name: string;
+  author: string;
+  description: string;
+  version: string;
+  baseMode: ThemeMode;
+  accentColor: string; // hex
+  headerColor: string; // hex
+  sidebarColor: string; // hex
+  windowBg: string; // hex
+  dockColor: string; // hex or rgba
+  borderRadius: number; // in pixels
+  tags: string[];
+  likes: number;
+  downloads: number;
+  createdAt: string;
+  isOfficial?: boolean;
+}

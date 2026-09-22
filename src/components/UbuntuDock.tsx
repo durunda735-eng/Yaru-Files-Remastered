@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   Sparkles,
   Columns3,
+  Palette,
 } from 'lucide-react';
 import { YaruFolder } from './YaruIcons';
 
@@ -15,10 +16,13 @@ interface UbuntuDockProps {
   onToggleAI: () => void;
   onOpenSettings: () => void;
   onOpenTrash: () => void;
+  onOpenThemeShowcase?: () => void;
   isTerminalOpen: boolean;
   isDualPane: boolean;
   isAIOpen: boolean;
   trashCount: number;
+  customDockColor?: string;
+  isThemeShowcaseOpen?: boolean;
 }
 
 export const UbuntuDock: React.FC<UbuntuDockProps> = ({
@@ -27,15 +31,19 @@ export const UbuntuDock: React.FC<UbuntuDockProps> = ({
   onToggleAI,
   onOpenSettings,
   onOpenTrash,
+  onOpenThemeShowcase,
   isTerminalOpen,
   isDualPane,
   isAIOpen,
   trashCount,
+  customDockColor,
+  isThemeShowcaseOpen,
 }) => {
   return (
     <aside
       id="ubuntu-dock"
-      className="w-14 h-full bg-[#111111]/90 backdrop-blur-md border-r border-black/40 flex flex-col items-center py-3 justify-between z-40 select-none shadow-xl"
+      style={customDockColor ? { backgroundColor: customDockColor } : undefined}
+      className="w-14 h-full bg-[#111111]/90 backdrop-blur-md border-r border-black/40 flex flex-col items-center py-3 justify-between z-40 select-none shadow-xl transition-colors duration-200"
     >
       {/* Top App Icons */}
       <div className="flex flex-col items-center gap-3">
@@ -51,6 +59,28 @@ export const UbuntuDock: React.FC<UbuntuDockProps> = ({
           </button>
           <div className="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-[#222222] border border-[#444] rounded text-white text-[11px] whitespace-nowrap shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
             Files
+          </div>
+        </div>
+
+        {/* Community Themes Showcase Launcher */}
+        <div className="relative group">
+          {isThemeShowcaseOpen && (
+            <div className="absolute -left-2.5 top-1/2 -translate-y-1/2 w-1.5 h-3 bg-[#E95420] rounded-r-sm" />
+          )}
+          <button
+            id="dock-theme-showcase"
+            onClick={onOpenThemeShowcase}
+            title="Yaru Community Themes &amp; Showcase"
+            className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center p-1.5 shadow-sm group-hover:scale-105 ${
+              isThemeShowcaseOpen
+                ? 'bg-[#E95420] text-white'
+                : 'bg-gradient-to-br from-[#77216F]/40 to-[#E95420]/40 hover:from-[#77216F] hover:to-[#E95420] text-white border border-white/10'
+            }`}
+          >
+            <Palette size={18} />
+          </button>
+          <div className="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-[#222222] border border-[#444] rounded text-white text-[11px] whitespace-nowrap shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">
+            Community Themes
           </div>
         </div>
 

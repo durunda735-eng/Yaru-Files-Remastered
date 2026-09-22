@@ -10,6 +10,8 @@ interface SettingsModalProps {
   showHiddenFiles: boolean;
   onToggleHiddenFiles: () => void;
   onClose: () => void;
+  onOpenThemeShowcase?: () => void;
+  activeCustomThemeName?: string;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -20,6 +22,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   showHiddenFiles,
   onToggleHiddenFiles,
   onClose,
+  onOpenThemeShowcase,
+  activeCustomThemeName,
 }) => {
   const isDark = themeMode === 'dark' || themeMode === 'aubergine';
 
@@ -136,6 +140,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Community Themes Showcase Banner */}
+          <div className="p-3.5 rounded-xl border border-[#E95420]/30 bg-gradient-to-r from-[#E95420]/15 via-[#77216F]/15 to-transparent flex items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-1.5 font-bold text-white text-xs">
+                <Palette size={14} className="text-[#E95420]" />
+                <span>Yaru Community Themes</span>
+                {activeCustomThemeName && (
+                  <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-[#E95420] text-white">
+                    {activeCustomThemeName}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-white/60">
+                Browse community-created Ubuntu palettes or upload &amp; share your own themes.
+              </p>
+            </div>
+            {onOpenThemeShowcase && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenThemeShowcase();
+                }}
+                className="px-3 py-1.5 rounded-lg bg-[#E95420] hover:bg-[#D34310] text-white text-xs font-semibold whitespace-nowrap shadow-xs transition-colors shrink-0"
+              >
+                Browse Themes
+              </button>
+            )}
           </div>
 
           {/* Files Options */}

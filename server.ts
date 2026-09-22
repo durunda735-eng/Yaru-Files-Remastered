@@ -1,8 +1,10 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import dotenv from "dotenv";
 import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { createServer as createViteServer } from "vite";
+import { INITIAL_COMMUNITY_THEMES } from "./src/data/defaultThemes";
 
 dotenv.config();
 
@@ -10,6 +12,38 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: "10mb" }));
+
+// Local persistent themes file path
+const THEMES_FILE = path.join(process.cwd(), "user_themes.json");
+
+function loadThemes(): any[] {
+  try {
+    if (fs.existsSync(THEMES_FILE)) {
+      const data = fs.readFileSync(THEMES_FILE, "utf-8");
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error("Error reading themes file, falling back to initial seed:", err);
+  }
+  // Initialize with seed themes
+  try {
+    fs.writeFileSync(THEMES_FILE, JSON.stringify(INITIAL_COMMUNITY_THEMES, null, 2), "utf-8");
+  } catch (e) {
+    console.error("Could not write initial themes file:", e);
+  }
+  return [...INITIAL_COMMUNITY_THEMES];
+}
+
+function saveThemes(themes: any[]) {
+  try {
+    fs.writeFileSync(THEMES_FILE, JSON.stringify(themes, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Error saving themes to file:", err);
+  }
+}
 
 // Lazy GoogleGenAI client initialization
 let aiClient: GoogleGenAI | null = null;
@@ -142,6 +176,151 @@ app.post("/api/ai/thinking", async (req, res) => {
         ? "Please set your GEMINI_API_KEY in the Settings > Secrets menu."
         : undefined,
     });
+  }
+});
+
+// Community Themes Endpoints
+app.get("/api/themes", (req, res) => {
+  try {
+    let themes = loadThemes();
+    const { search, mode, sort } = req.query;
+
+    if (search && typeof search === "string") {
+      const q = search.toLowerCase();
+      themes = themes.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          t.author.toLowerCase().includes(q) ||
+          t.description.toLowerCase().includes(q) ||
+          (t.tags && t.tags.some((tag: string) => tag.toLowerCase().includes(q)))
+      );
+    }
+
+    if (mode && typeof mode === "string" && mode !== "all") {
+      themes = themes.filter((t) => t.baseMode === mode);
+    }
+
+    if (sort === "newest") {
+      themes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (sort === "name") {
+      themes.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      // default: popular by likes
+      themes.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    }
+
+    res.json({ themes });
+  } catch (error: any) {
+    console.error("Error retrieving themes:", error);
+    res.status(500).json({ error: "Failed to fetch community themes" });
+  }
+});
+
+app.post("/api/themes", (req, res) => {
+  try {
+    const {
+      name,
+      author,
+      description,
+      baseMode,
+      accentColor,
+      headerColor,
+      sidebarColor,
+      windowBg,
+      dockColor,
+      borderRadius,
+      tags,
+      version,
+    } = req.body;
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      res.status(400).json({ error: "Theme name is required." });
+      return;
+    }
+
+    if (!accentColor || typeof accentColor !== "string") {
+      res.status(400).json({ error: "Valid accent color is required." });
+      return;
+    }
+
+    const themes = loadThemes();
+
+    const newTheme = {
+      id: `theme-custom-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      name: name.trim().slice(0, 50),
+      author: (author && typeof author === "string" ? author.trim() : "Ubuntu Enthusiast").slice(0, 40),
+      description: (description && typeof description === "string" ? description.trim() : "Custom Yaru theme crafted by the Ubuntu community.").slice(0, 250),
+      version: version && typeof version === "string" ? version.trim() : "1.0.0",
+      baseMode: baseMode === "light" || baseMode === "aubergine" ? baseMode : "dark",
+      accentColor: accentColor.startsWith("#") ? accentColor : `#${accentColor}`,
+      headerColor: headerColor || (baseMode === "light" ? "#F2F2F2" : "#2D2D2D"),
+      sidebarColor: sidebarColor || (baseMode === "light" ? "#E8E8E8" : "#242424"),
+      windowBg: windowBg || (baseMode === "light" ? "#FAFAFA" : "#1E1E1E"),
+      dockColor: dockColor || "rgba(17, 17, 17, 0.95)",
+      borderRadius: typeof borderRadius === "number" ? Math.min(Math.max(borderRadius, 0), 24) : 12,
+      tags: Array.isArray(tags) && tags.length > 0 ? tags.map((t: string) => String(t).trim().toLowerCase()) : ["custom", "community"],
+      likes: 1,
+      downloads: 1,
+      createdAt: new Date().toISOString(),
+      isOfficial: false,
+    };
+
+    themes.unshift(newTheme);
+    saveThemes(themes);
+
+    res.status(201).json({
+      theme: newTheme,
+      message: "Custom Yaru theme published successfully to the community gallery!",
+    });
+  } catch (error: any) {
+    console.error("Error publishing custom theme:", error);
+    res.status(500).json({ error: "Failed to publish theme" });
+  }
+});
+
+app.post("/api/themes/:id/like", (req, res) => {
+  try {
+    const { id } = req.params;
+    const themes = loadThemes();
+    const theme = themes.find((t) => t.id === id);
+
+    if (!theme) {
+      res.status(404).json({ error: "Theme not found" });
+      return;
+    }
+
+    theme.likes = (theme.likes || 0) + 1;
+    saveThemes(themes);
+
+    res.json({ theme, likes: theme.likes });
+  } catch (error: any) {
+    console.error("Error liking theme:", error);
+    res.status(500).json({ error: "Failed to like theme" });
+  }
+});
+
+app.get("/api/themes/:id/export", (req, res) => {
+  try {
+    const { id } = req.params;
+    const themes = loadThemes();
+    const theme = themes.find((t) => t.id === id);
+
+    if (!theme) {
+      res.status(404).json({ error: "Theme not found" });
+      return;
+    }
+
+    // Increment downloads count
+    theme.downloads = (theme.downloads || 0) + 1;
+    saveThemes(themes);
+
+    const safeFilename = `${theme.name.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase()}_yaru_theme.json`;
+    res.setHeader("Content-Disposition", `attachment; filename="${safeFilename}"`);
+    res.setHeader("Content-Type", "application/json");
+    res.send(JSON.stringify(theme, null, 2));
+  } catch (error: any) {
+    console.error("Error exporting theme:", error);
+    res.status(500).json({ error: "Failed to export theme" });
   }
 });
 

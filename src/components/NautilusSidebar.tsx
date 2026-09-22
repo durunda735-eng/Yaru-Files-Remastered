@@ -25,6 +25,8 @@ interface NautilusSidebarProps {
   onSelectFilter: (filter: 'none' | 'starred' | ColorTag) => void;
   themeMode: ThemeMode;
   trashCount: number;
+  customSidebarColor?: string;
+  customAccentColor?: string;
 }
 
 export const NautilusSidebar: React.FC<NautilusSidebarProps> = ({
@@ -34,6 +36,8 @@ export const NautilusSidebar: React.FC<NautilusSidebarProps> = ({
   onSelectFilter,
   themeMode,
   trashCount,
+  customSidebarColor,
+  customAccentColor,
 }) => {
   const isDark = themeMode === 'dark' || themeMode === 'aubergine';
 
@@ -60,6 +64,7 @@ export const NautilusSidebar: React.FC<NautilusSidebarProps> = ({
   return (
     <aside
       id="nautilus-sidebar"
+      style={customSidebarColor ? { backgroundColor: customSidebarColor } : undefined}
       className={`w-56 h-full flex flex-col justify-between py-2 border-r select-none transition-colors overflow-y-auto ${
         isDark
           ? 'bg-[#222222] border-[#383838] text-white/90'

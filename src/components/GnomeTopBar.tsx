@@ -14,6 +14,7 @@ import {
   ChevronDown,
   Calendar as CalendarIcon,
   Columns3,
+  Palette,
 } from 'lucide-react';
 import { ThemeMode, AccentColor } from '../types';
 
@@ -22,6 +23,7 @@ interface GnomeTopBarProps {
   onToggleTheme: () => void;
   accentColor?: string;
   onOpenSettings: () => void;
+  onOpenThemeShowcase?: () => void;
   onToggleTerminal?: () => void;
   onToggleDualPane?: () => void;
   onToggleAI?: () => void;
@@ -34,6 +36,7 @@ export const GnomeTopBar: React.FC<GnomeTopBarProps> = ({
   themeMode,
   onToggleTheme,
   onOpenSettings,
+  onOpenThemeShowcase = () => {},
   onToggleTerminal = () => {},
   onToggleDualPane = () => {},
   onToggleAI = () => {},
@@ -143,6 +146,16 @@ export const GnomeTopBar: React.FC<GnomeTopBarProps> = ({
                 <span className="text-[10px] opacity-60">Ctrl+`</span>
               </button>
               <div className="h-px bg-[#444444] my-1" />
+              <button
+                onClick={() => {
+                  onOpenThemeShowcase();
+                  setShowFilesMenu(false);
+                }}
+                className="w-full text-left px-3 py-1.5 hover:bg-[#E95420] transition-colors flex items-center gap-2"
+              >
+                <Palette size={13} className="text-[#FF7043]" />
+                <span>Community Themes...</span>
+              </button>
               <button
                 onClick={() => {
                   onOpenSettings();
@@ -276,6 +289,17 @@ export const GnomeTopBar: React.FC<GnomeTopBarProps> = ({
                   <span>Fullscreen View</span>
                 </span>
                 <span className="text-[10px] text-white/40">F11</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  onOpenThemeShowcase();
+                  setShowQuickSettings(false);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-white/10 transition-colors text-white"
+              >
+                <Palette size={13} className="text-[#E95420]" />
+                <span>Community Themes Showcase</span>
               </button>
 
               <button

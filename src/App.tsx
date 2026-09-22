@@ -10,6 +10,7 @@ import {
   ThemeMode,
   AccentColor,
   BreadcrumbItem,
+  YaruTheme,
 } from './types';
 import {
   sortFiles,
@@ -32,11 +33,13 @@ import { QuickPreviewModal } from './components/QuickPreviewModal';
 import { PropertiesModal } from './components/PropertiesModal';
 import { ContextMenu } from './components/ContextMenu';
 import { SettingsModal } from './components/SettingsModal';
+import { ThemeShowcaseModal } from './components/ThemeShowcaseModal';
 
 export const App: React.FC = () => {
   // Theme & Appearance State
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
   const [accentColor, setAccentColor] = useState<AccentColor>('orange');
+  const [currentCustomTheme, setCurrentCustomTheme] = useState<YaruTheme | null>(null);
   const [showHiddenFiles, setShowHiddenFiles] = useState(false);
   const [iconScale, setIconScale] = useState<'small' | 'medium' | 'large'>('medium');
 
@@ -71,6 +74,21 @@ export const App: React.FC = () => {
   const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
   const [propertiesFile, setPropertiesFile] = useState<FileItem | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isThemeShowcaseOpen, setIsThemeShowcaseOpen] = useState<boolean>(false);
+
+  // Apply custom community or created Yaru theme
+  const handleApplyTheme = useCallback((theme: YaruTheme) => {
+    setCurrentCustomTheme(theme);
+    setThemeMode(theme.baseMode);
+
+    // Sync CSS Variables for deep styling consistency
+    document.documentElement.style.setProperty('--yaru-accent', theme.accentColor);
+    document.documentElement.style.setProperty('--yaru-header', theme.headerColor);
+    document.documentElement.style.setProperty('--yaru-sidebar', theme.sidebarColor);
+    document.documentElement.style.setProperty('--yaru-canvas', theme.windowBg);
+    document.documentElement.style.setProperty('--yaru-dock', theme.dockColor);
+    document.documentElement.style.setProperty('--yaru-radius', `${theme.borderRadius}px`);
+  }, []);
 
   // Context Menu State
   const [contextMenu, setContextMenu] = useState<{
@@ -473,6 +491,7 @@ export const App: React.FC = () => {
         onToggleTheme={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
         accentColor={accentColor}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenThemeShowcase={() => setIsThemeShowcaseOpen(true)}
         onToggleTerminal={() => setIsTerminalOpen((prev) => !prev)}
         onToggleDualPane={() => setIsDualPane((prev) => !prev)}
         onToggleAI={() => setIsAIOpen((prev) => !prev)}
@@ -489,6 +508,9 @@ export const App: React.FC = () => {
           onToggleDualPane={() => setIsDualPane((prev) => !prev)}
           onToggleAI={() => setIsAIOpen((prev) => !prev)}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenThemeShowcase={() => setIsThemeShowcaseOpen(true)}
+          isThemeShowcaseOpen={isThemeShowcaseOpen}
+          customDockColor={currentCustomTheme?.dockColor}
           onOpenTrash={() => {
             setActiveFilter('none');
             navigateToFolder('trash');
@@ -502,6 +524,7 @@ export const App: React.FC = () => {
         {/* Main Nautilus File Manager Window */}
         <main
           id="nautilus-window-frame"
+          style={currentCustomTheme ? { backgroundColor: currentCustomTheme.windowBg } : undefined}
           className="flex-1 flex flex-col overflow-hidden bg-transparent"
         >
           {/* Nautilus Header Bar (CSD) */}
@@ -536,6 +559,8 @@ export const App: React.FC = () => {
             onIconScaleChange={setIconScale}
             themeMode={themeMode}
             onSelectAll={() => setSelectedIds(processedFiles.map((f: FileItem) => f.id))}
+            onOpenThemeShowcase={() => setIsThemeShowcaseOpen(true)}
+            customHeaderColor={currentCustomTheme?.headerColor}
           />
 
           {/* Nautilus Body: Places Sidebar + File Viewer (+ Optional Dual Pane) */}
@@ -548,11 +573,14 @@ export const App: React.FC = () => {
               onSelectFilter={setActiveFilter}
               themeMode={themeMode}
               trashCount={trashCount}
+              customSidebarColor={currentCustomTheme?.sidebarColor}
+              customAccentColor={currentCustomTheme?.accentColor}
             />
 
             {/* Primary View Pane */}
             <div
               id="nautilus-primary-pane"
+              style={currentCustomTheme ? { backgroundColor: currentCustomTheme.windowBg } : undefined}
               onClick={() => {
                 setSelectedIds([]);
               }}
@@ -807,6 +835,18 @@ export const App: React.FC = () => {
           showHiddenFiles={showHiddenFiles}
           onToggleHiddenFiles={() => setShowHiddenFiles((prev) => !prev)}
           onClose={() => setIsSettingsOpen(false)}
+          onOpenThemeShowcase={() => setIsThemeShowcaseOpen(true)}
+          activeCustomThemeName={currentCustomTheme?.name}
+        />
+      )}
+
+      {/* Yaru Community Themes Showcase & Creator Modal */}
+      {isThemeShowcaseOpen && (
+        <ThemeShowcaseModal
+          currentTheme={currentCustomTheme}
+          onApplyTheme={handleApplyTheme}
+          onClose={() => setIsThemeShowcaseOpen(false)}
+          themeMode={themeMode}
         />
       )}
     </div>

@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   Check,
   Upload,
+  Palette,
 } from 'lucide-react';
 import { ViewMode, SortField, SortOrder, BreadcrumbItem, ThemeMode } from '../types';
 
@@ -51,6 +52,8 @@ interface NautilusHeaderProps {
   onIconScaleChange: (scale: 'small' | 'medium' | 'large') => void;
   themeMode: ThemeMode;
   onSelectAll: () => void;
+  onOpenThemeShowcase?: () => void;
+  customHeaderColor?: string;
 }
 
 export const NautilusHeader: React.FC<NautilusHeaderProps> = ({
@@ -84,6 +87,8 @@ export const NautilusHeader: React.FC<NautilusHeaderProps> = ({
   onIconScaleChange,
   themeMode,
   onSelectAll,
+  onOpenThemeShowcase = () => {},
+  customHeaderColor,
 }) => {
   const [isEditingPath, setIsEditingPath] = useState(false);
   const [manualPathInput, setManualPathInput] = useState(currentPath);
@@ -99,6 +104,7 @@ export const NautilusHeader: React.FC<NautilusHeaderProps> = ({
   return (
     <div
       id="nautilus-header-bar"
+      style={customHeaderColor ? { backgroundColor: customHeaderColor } : undefined}
       className={`h-13 px-3 flex items-center justify-between border-b select-none transition-colors ${
         isDark
           ? 'bg-[#262626] border-[#383838] text-white'
@@ -325,6 +331,16 @@ export const NautilusHeader: React.FC<NautilusHeaderProps> = ({
             className="hidden"
           />
         </label>
+
+        {/* Community Themes Showcase Quick Button */}
+        <button
+          id="theme-showcase-header-btn"
+          onClick={onOpenThemeShowcase}
+          title="Yaru Community Themes Showcase &amp; Upload"
+          className="p-1.5 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors text-[#FF7043] hover:text-[#E95420]"
+        >
+          <Palette size={16} />
+        </button>
 
         {/* View Options Menu (Hamburger) */}
         <div className="relative">
