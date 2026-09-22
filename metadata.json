@@ -1,0 +1,6 @@
+{
+  "name": "Yaru Files - Ubuntu File Manager",
+  "description": "An authentic Ubuntu Yaru-styled Nautilus file manager featuring dual-pane navigation, quick file preview, bash terminal, and AI intelligence with low-latency and deep thinking modes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

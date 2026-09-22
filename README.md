@@ -1,1 +1,0 @@
-Please remember that this is an app created with a vibe-coded design inspired by Ubuntu Yaru. If you notice any errors made by the Google Anti-gravity AI, please let me know.
